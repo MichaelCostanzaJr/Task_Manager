@@ -35,3 +35,31 @@ h1 {
 #form .control .far {
     color:blue
 }
+
+.task-item {
+    display: flex;
+    border: 1px solid black;
+    padding: 10 px;
+    margin: 10px;
+    border-radius: 5px;
+}
+
+.task-item .info-1 {
+    flex: 3;
+}
+
+.task-item .info-2 {
+    flex: 1;
+}
+
+.task-item .info-2 label {
+    display: block;
+}
+
+.task-item .info-3 {
+    flex: 1;
+}
+
+.task-item .info-3 label {
+    display: block;
+}
