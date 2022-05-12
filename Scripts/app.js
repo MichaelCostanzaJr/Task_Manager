@@ -2,6 +2,7 @@ const iconImportant = "iImportant fas fa-star";
 const iconNonImportant = "iImportant far fa-star";
 var important = false;
 var panelVisible = true;
+var total = 0;
 
 function toggleImportance() {
   if (important) {
@@ -18,29 +19,61 @@ function toggleImportance() {
 function togglePanel() {
   if (panelVisible) {
     $("#form").hide();
+    $("#btnTogglePanel").text("< Show");
     panelVisible = false;
   } else {
     $("#form").show();
+    $("#btnTogglePanel").text("Hide >");
     panelVisible = true;
   }
 }
 function saveTask() {
   let title = $("#txtTitle").val();
   let description = $("#txtDescription").val();
-  let dueDate = $("txtDate").val();
-  let frequancy = $("txtFrequancy").val();
-  let status = $("txtStatus").val();
+  let dueDate = $("#txtDate").val();
+  let location = $("#txtLocation").val();
+  let invites = $("#txtInvites").val();
+  let color = $("#selColor").val();
+  let frequancy = $("#selFrequancy").val();
+  let status = $("#selStatus").val();
 
   let task = new Task(
     important,
     title,
     description,
     dueDate,
+    location,
+    invites,
+    color,
     frequancy,
     status
   );
-  console.log(task);
-  displayTask(task);
+
+  $.ajax({
+    type: "post",
+    url: "https://fsdiapi.azurewebsites.net/api/tasks/",
+    data: JSON.stringify(task),
+    contentType: "application/json",
+    success: function (res) {
+      console.log("Task saved", res);
+      displayTask(task);
+      clearForm();
+    },
+    error: function (errorDetails) {
+      console.error("Save failed", errorDetails);
+    },
+  });
+}
+
+function clearForm() {
+  $("input").val("");
+  $("textarea").val("");
+  $("#selDate").val("");
+  $("#txtLocation").val("");
+  $("#txtInvites").val("");
+  $("#selFrequancy").val("");
+  $("#selStatus").val("");
+  $("selColor").val("#ffffff");
 }
 
 function getStatusText(status) {
@@ -71,7 +104,7 @@ function getFrequencyText(val) {
     case "3":
       return "Monthly";
     default:
-      return "Other";
+      return " ";
   }
 }
 
@@ -110,13 +143,63 @@ function displayTask(task) {
   $("#tasks").append(syntax);
 }
 
+function fetchTasks() {
+  $.ajax({
+    type: "get",
+    url: "https://fsdiapi.azurewebsites.net/api/tasks",
+    success: function (res) {
+      console.log(res);
+      let data = JSON.parse(res); // (decode) from string to obj
+      console.log(data)
+
+      // for loop over data
+      total = 0;
+      for (let i = 0; i < data.length; i++) {
+        let task = data[i];
+
+        // if the name attribute of task object is equal to your name,
+        if (task.name == "Michael") {
+          total+= 1;
+          displayTask(task);
+        }
+      }
+      $("#headCount").text("You have" + total + "tasks");
+      // get every element inside the array
+      // send the element to the display fn
+    },
+    error: function (err) {
+      console.error("Error retrieving data", err);
+    },
+  });
+}
+
+function clearAllTasks(){
+  $.ajax({
+    type:"delete",
+    url: "https://fsdiapi.azurewebsites.net/api/tasks/clear/Michael",
+    success: function(){
+      location.reload();
+    },
+    error: function(err){
+      console.log("Error clearing tasks", err)
+    },
+  })
+}
+
 function init() {
   console.log("Task manager page");
   // assign events
   $("#iImportant").click(toggleImportance);
   $("#btnTogglePanel").click(togglePanel);
   $("#btnSave").click(saveTask);
+  $("#btnClearAll").click(clearAllTasks);
+
   // load data
+  fetchTasks();
 }
 
 window.onload = init;
+
+
+
+
